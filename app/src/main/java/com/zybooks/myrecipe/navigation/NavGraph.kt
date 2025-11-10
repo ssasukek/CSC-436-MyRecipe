@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.zybooks.myrecipe.ui.screens.LoadingScreen
 import com.zybooks.myrecipe.ui.screens.LoginScreen
+import com.zybooks.myrecipe.ui.screens.RegisterScreen
 
 //import com.zybooks.myrecipe.ui.screens.*
 
@@ -15,13 +16,17 @@ fun NavGraph(navController: NavHostController) {
         navController = navController,
         startDestination = "loading" // First screen to show
     ) {
-        composable("loading") { LoadingScreen(navController) }
+        composable("loading") {
+            LoadingScreen(navController)
+        }
 
-        composable("login") { LoginScreen(navController) }
+        composable("login") {
+            LoginScreen(navController)
+        }
 
-//        composable("register") {
-//            RegisterScreen(navController)
-//        }
+        composable("register") {
+            RegisterScreen(navController)
+        }
 //        composable("recipes") {
 //            RecipeListScreen(navController)
 //        }
@@ -35,4 +40,9 @@ fun NavGraph(navController: NavHostController) {
 //            AiPromptScreen(navController)
 //        }
     }
+}
+
+@Composable
+fun RegisterScreen(x0: NavHostController) {
+    TODO("Not yet implemented")
 }

@@ -8,12 +8,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 
 @Composable
-fun LoadingScreen(navController: NavHostController) {
+fun LoadingScreen(navController: NavController) {
     LaunchedEffect(Unit) {
         delay(2000)
         navController.navigate("login"){
