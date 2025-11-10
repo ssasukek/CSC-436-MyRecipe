@@ -6,6 +6,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.zybooks.myrecipe.ui.screens.LoadingScreen
 import com.zybooks.myrecipe.ui.screens.LoginScreen
+import com.zybooks.myrecipe.ui.screens.RecipeListScreen
 import com.zybooks.myrecipe.ui.screens.RegisterScreen
 
 //import com.zybooks.myrecipe.ui.screens.*
@@ -27,9 +28,9 @@ fun NavGraph(navController: NavHostController) {
         composable("register") {
             RegisterScreen(navController)
         }
-//        composable("recipes") {
-//            RecipeListScreen(navController)
-//        }
+        composable("recipes") {
+            RecipeListScreen(navController)
+        }
 //        composable("recipe_detail") {
 //            RecipeDetailScreen(navController)
 //        }
