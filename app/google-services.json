@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "444336341185",
+    "project_id": "myrecipe-16bff",
+    "storage_bucket": "myrecipe-16bff.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444336341185:android:2f219c1d2c0d85fa40d440",
+        "android_client_info": {
+          "package_name": "com.zybooks.myrecipe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9NpqXG1zJH5ZSw6udLITQtfcarEOZjRw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
