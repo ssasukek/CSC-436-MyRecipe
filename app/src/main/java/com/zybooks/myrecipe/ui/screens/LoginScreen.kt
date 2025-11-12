@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +37,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.size.Scale
+import com.zybooks.myrecipe.data.repository.AuthRepo
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +47,9 @@ fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -92,10 +98,37 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
+            if (errorMessage.isNotBlank()) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             Button(
                 onClick = {
-                    navController.navigate("recipes")
+                    if(email.isBlank() || password.isBlank()){
+                        errorMessage = "Please Try Again"
+                        return@Button
+                    }
+                    coroutineScope.launch {
+                        isLoading = true
+                        errorMessage = ""
+
+                        val result = AuthRepo.loginUser(email, password)
+                        if (result.isSuccess) {
+                            navController.navigate("recipes") {
+                                popUpTo("login") {
+                                    inclusive = true
+                                }
+                            }
+                        } else {
+                            errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
+                        }
+                        isLoading = false
+                    }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
