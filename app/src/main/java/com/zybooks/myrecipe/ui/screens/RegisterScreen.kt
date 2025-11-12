@@ -37,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.zybooks.myrecipe.data.repository.AuthRepo
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +52,7 @@ fun RegisterScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var registrationSuccess by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -121,9 +125,8 @@ fun RegisterScreen(navController: NavController) {
 
                     val result = AuthRepo.registerUser(email, password, username)
                     if (result.isSuccess) {
-                        navController.navigate("login") {
-                            popUpTo("register") { inclusive = true }
-                        }
+                        isLoading = false
+                        registrationSuccess = true
                     } else {
                         errorMessage = result.exceptionOrNull()?.message ?: "Registration failed."
                     }
@@ -151,6 +154,14 @@ fun RegisterScreen(navController: NavController) {
             if (errorMessage.isNotEmpty()) {
                 Spacer(Modifier.height(16.dp))
                 Text(text = errorMessage, color = MaterialTheme.colorScheme.error)
+            }
+        }
+    }
+    LaunchedEffect(registrationSuccess) {
+        if (registrationSuccess) {
+            kotlinx.coroutines.delay(300)
+            navController.navigate("login") {
+                popUpTo("register") { inclusive = true }
             }
         }
     }

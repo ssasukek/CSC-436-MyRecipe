@@ -49,6 +49,7 @@ fun LoginScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
