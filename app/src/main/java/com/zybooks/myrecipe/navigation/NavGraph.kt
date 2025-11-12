@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.zybooks.myrecipe.ui.screens.AddRecipeScreen
+//import com.zybooks.myrecipe.ui.screens.AddRecipeScreen
 import com.zybooks.myrecipe.ui.screens.AiPromptScreen
 import com.zybooks.myrecipe.ui.screens.LoadingScreen
 import com.zybooks.myrecipe.ui.screens.LoginScreen
@@ -37,9 +37,9 @@ fun NavGraph(navController: NavHostController) {
         composable("recipe_detail") {
             RecipeDetailScreen(navController)
         }
-        composable("add_recipe") {
-            AddRecipeScreen(navController)
-        }
+//        composable("add_recipe") {
+//            AddRecipeScreen(navController)
+//        }
         composable("ai_prompt") {
             AiPromptScreen(navController)
         }
