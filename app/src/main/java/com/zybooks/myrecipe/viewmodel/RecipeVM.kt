@@ -34,18 +34,10 @@ class RecipeVM : ViewModel() {
         }
     }
 
-    fun updateRecipe(recipeId: String, title: String, ingredients: String, instructions: String) {
+    fun updateTitle(recipeId: String, newTitle: String) {
         viewModelScope.launch {
-            val updatedRecipe = mapOf(
-                "title" to title,
-                "ingredients" to ingredients,
-                "instructions" to instructions,
-                "updatedAt" to System.currentTimeMillis()
-            )
-            val result = RecipeRepo.updateRecipe(recipeId, updatedRecipe)
-            if (result.isSuccess) {
-                loadRecipes()
-            }
+            RecipeRepo.updateRecipeTitle(recipeId, newTitle)
+            loadRecipes()
         }
     }
 
@@ -56,22 +48,13 @@ class RecipeVM : ViewModel() {
         }
     }
 
+
     fun toggleFavorite(recipeId: String, currentValue: Boolean) {
-        val newValue = !currentValue
-
-        FirebaseFirestore.getInstance()
-            .collection("recipes")
-            .document(recipeId)
-            .update("favorite", newValue)
-            .addOnSuccessListener {
-                loadRecipes()   // refresh UI
-            }
-            .addOnFailureListener { e ->
-                Log.e("RecipeVM", "Failed to update favorite", e)
-            }
+        viewModelScope.launch {
+            RecipeRepo.toggleFavorite(recipeId, !currentValue)
+            loadRecipes()
+        }
     }
-
-
 
     fun parseAiRecipe(aiText: String): Triple<String, String, String> {
         val lines = aiText.lines()

@@ -6,13 +6,11 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "recipes")
 
 data class Recipe(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val title: String,
-    val description: String,
-    val ingredients: String,
-    val instruction: String,
+    val id: String = "",
+    val title: String = "",
+    val ingredients: String = "",
+    val instructions: String = "",
+    val favorite: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-//    val imageUri: String? = null,
-    val isFavorite: Boolean = false
+    val updatedAt: Long = System.currentTimeMillis()
 )

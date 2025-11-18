@@ -20,13 +20,14 @@ object RecipeRepo {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
+    private fun userRecipesCollection() =
+        db.collection("users")
+            .document(auth.currentUser!!.uid)
+            .collection("recipes")
+
     suspend fun addRecipe(recipe: Recipe): Result<Unit> {
         return try {
-            val userId = auth.currentUser?.uid ?: return Result.failure(Exception("Error"))
-            db.collection("users").document(userId)
-                .collection("recipes")
-                .add(recipe)
-                .await()
+            userRecipesCollection().add(recipe).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -34,46 +35,30 @@ object RecipeRepo {
     }
 
     suspend fun getRecipes(): List<Recipe> {
-        val userId = auth.currentUser?.uid ?: return emptyList()
-        val snapshot = db.collection("users").document(userId)
-            .collection("recipes")
-            .get()
+        val snapshot = userRecipesCollection().get().await()
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Recipe::class.java)?.copy(id = doc.id)
+        }
+    }
+
+    suspend fun updateRecipeTitle(id: String, newTitle: String) {
+        userRecipesCollection()
+            .document(id)
+            .update("title", newTitle, "updatedAt", System.currentTimeMillis())
             .await()
-        return snapshot.documents.map { doc ->
-            val data = doc.toObject(Recipe::class.java)
-            data!!.copy(id = doc.id)
-        }
     }
 
-    suspend fun updateRecipe(recipeId: String, updatedData: Map<String, Any>): Result<Unit> {
-        return try {
-            val userId = auth.currentUser?.uid ?: return Result.failure(Exception("Error"))
-            db.collection("users").document(userId)
-                .collection("recipes")
-                .document(recipeId)
-                .update(updatedData)
-                .await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    suspend fun deleteRecipe(id: String) {
+        userRecipesCollection()
+            .document(id)
+            .delete()
+            .await()
     }
 
-    suspend fun deleteRecipe(recipeId: String) {
-        val userId = auth.currentUser?.uid ?: return
-        db.collection("users").document(userId)
-            .collection("recipes").document(recipeId).delete().await()
-    }
-
-    suspend fun toggleFavorite(recipeId: String, newValue: Boolean) {
-        val userId = auth.currentUser?.uid ?: return
-
-        db.collection("users")
-            .document(userId)
-            .collection("recipes")
-            .document(recipeId)
+    suspend fun toggleFavorite(id: String, newValue: Boolean) {
+        userRecipesCollection()
+            .document(id)
             .update("favorite", newValue)
             .await()
     }
-
 }

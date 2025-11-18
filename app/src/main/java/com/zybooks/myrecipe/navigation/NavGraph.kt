@@ -6,8 +6,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.zybooks.myrecipe.ui.screens.AddRecipeScreen
 import com.zybooks.myrecipe.ui.screens.AiPromptScreen
+import com.zybooks.myrecipe.ui.screens.EditRecipeScreen
 import com.zybooks.myrecipe.ui.screens.LoadingScreen
 import com.zybooks.myrecipe.ui.screens.LoginScreen
+import com.zybooks.myrecipe.ui.screens.ProfileScreen
 import com.zybooks.myrecipe.ui.screens.RecipeDetailScreen
 import com.zybooks.myrecipe.ui.screens.RecipeListScreen
 import com.zybooks.myrecipe.ui.screens.RegisterScreen
@@ -40,17 +42,16 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable("edit_recipe/{id}") { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")!!
-            RecipeDetailScreen(navController, id)
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            EditRecipeScreen(navController, id)
         }
         composable("recipe_detail/{id}") { backStackEntry ->
             val id = backStackEntry.arguments?.getString("id") ?: ""
             RecipeDetailScreen(navController, id)
         }
-    }
-}
 
-@Composable
-fun RegisterScreen(x0: NavHostController) {
-    TODO("Not yet implemented")
+        composable("profile"){
+            ProfileScreen(navController)
+        }
+    }
 }
