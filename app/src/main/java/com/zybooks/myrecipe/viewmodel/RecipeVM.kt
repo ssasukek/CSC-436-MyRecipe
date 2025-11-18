@@ -1,7 +1,9 @@
 package com.zybooks.myrecipe.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.firestore.FirebaseFirestore
 import com.zybooks.myrecipe.data.repository.Recipe
 import com.zybooks.myrecipe.data.repository.RecipeRepo
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,6 +55,23 @@ class RecipeVM : ViewModel() {
             loadRecipes()
         }
     }
+
+    fun toggleFavorite(recipeId: String, currentValue: Boolean) {
+        val newValue = !currentValue
+
+        FirebaseFirestore.getInstance()
+            .collection("recipes")
+            .document(recipeId)
+            .update("favorite", newValue)
+            .addOnSuccessListener {
+                loadRecipes()   // refresh UI
+            }
+            .addOnFailureListener { e ->
+                Log.e("RecipeVM", "Failed to update favorite", e)
+            }
+    }
+
+
 
     fun parseAiRecipe(aiText: String): Triple<String, String, String> {
         val lines = aiText.lines()

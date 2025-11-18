@@ -10,6 +10,7 @@ data class Recipe(
     val title: String = "",
     val ingredients: String = "",
     val instructions: String = "",
+    val favorite: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )
@@ -63,4 +64,16 @@ object RecipeRepo {
         db.collection("users").document(userId)
             .collection("recipes").document(recipeId).delete().await()
     }
+
+    suspend fun toggleFavorite(recipeId: String, newValue: Boolean) {
+        val userId = auth.currentUser?.uid ?: return
+
+        db.collection("users")
+            .document(userId)
+            .collection("recipes")
+            .document(recipeId)
+            .update("favorite", newValue)
+            .await()
+    }
+
 }

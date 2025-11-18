@@ -1,15 +1,12 @@
 package com.zybooks.myrecipe.ui.screens
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Edit
@@ -27,19 +24,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.zybooks.myrecipe.viewmodel.RecipeVM
-
 
 data class RecipeDetail (
     val title: String,
@@ -98,13 +92,17 @@ fun RecipeDetailScreen(
                             contentDescription = "Share"
                         )
                     }
-                    IconButton(onClick = { /* Handle favorite action */ }) {
+                    IconButton(onClick = {
+                        viewModel.toggleFavorite(recipe.id, recipe.favorite)
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Favorite,
                             contentDescription = "Favorite"
                         )
                     }
-                    IconButton(onClick = { navController.navigate("edit_recipe/$recipeId") }) {
+                    IconButton(onClick = {
+                        navController.navigate("edit_recipe/${recipe.id}")
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = "Edit"

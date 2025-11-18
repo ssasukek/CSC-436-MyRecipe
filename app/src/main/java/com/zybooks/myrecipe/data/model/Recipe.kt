@@ -14,5 +14,5 @@ data class Recipe(
     val instruction: String,
     val createdAt: Long = System.currentTimeMillis(),
 //    val imageUri: String? = null,
-//    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false
 )
