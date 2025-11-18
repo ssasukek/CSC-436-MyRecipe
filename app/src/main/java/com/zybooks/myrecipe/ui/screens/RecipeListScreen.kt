@@ -20,7 +20,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,21 +28,21 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.zybooks.myrecipe.data.repository.Recipe
+import com.zybooks.myrecipe.viewmodel.RecipeVM
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipeListScreen(navController: NavController) {
+fun RecipeListScreen(navController: NavController, viewModel: RecipeVM = viewModel()) {
+    val recipes by viewModel.recipes.collectAsState()
 
-    // temp list - placeholder data
-    val recipes = remember {
-        listOf(
-            RecipeItem("Recipe 1", "Description 1"),
-            RecipeItem("Recipe 2", "Description 2"),
-            RecipeItem("Recipe 3", "Description 3"),
-            RecipeItem("Recipe 4", "Description 4")
-        )
+    LaunchedEffect(Unit) {
+        viewModel.loadRecipes()
     }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -85,7 +84,9 @@ fun RecipeListScreen(navController: NavController) {
                 items(recipes) { recipe ->
                     RecipeCard(
                         recipe = recipe,
-                        onClick = { navController.navigate("recipe_detail") }
+                        onClick = { navController.navigate(
+                            "recipe_detail/${recipe.id}"
+                        ) }
                     )
                 }
             }
@@ -93,33 +94,31 @@ fun RecipeListScreen(navController: NavController) {
     }
 }
 
-data class RecipeItem(val title: String, val description: String)
-
 @Composable
-fun RecipeCard(recipe: RecipeItem, onClick: () -> Unit) {
+fun RecipeCard(
+    recipe: Recipe,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = recipe.title,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = recipe.description,
-                style = MaterialTheme.typography.bodyMedium,
-                overflow = TextOverflow.Ellipsis,
-                maxLines = 2
+                text = recipe.ingredients,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

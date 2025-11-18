@@ -75,6 +75,7 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.5.0"))
     implementation("com.google.firebase:firebase-ai")
+    implementation("com.halilibo.compose-richtext:richtext-commonmark:0.17.0")
 
 
 }

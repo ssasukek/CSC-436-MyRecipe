@@ -1,5 +1,6 @@
 package com.zybooks.myrecipe.data.repository
 
+import android.annotation.SuppressLint
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -14,40 +15,16 @@ data class Recipe(
 )
 
 object RecipeRepo {
+    @SuppressLint("StaticFieldLeak")
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    private fun userRecipesCollection() =
-        db.collection("users")
-            .document(auth.currentUser?.uid ?: throw Exception("User not logged in"))
-            .collection("recipes")
-
     suspend fun addRecipe(recipe: Recipe): Result<Unit> {
         return try {
-            val docRef = userRecipesCollection().document()
-            val newRecipe = recipe.copy(id = docRef.id)
-            docRef.set(newRecipe).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getRecipes(): Result<List<Recipe>> {
-        return try {
-            val snapshot = userRecipesCollection().get().await()
-            val recipes = snapshot.toObjects(Recipe::class.java)
-            Result.success(recipes)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun updateRecipe(recipe: Recipe): Result<Unit> {
-        return try {
-            userRecipesCollection()
-                .document(recipe.id)
-                .set(recipe.copy(updatedAt = System.currentTimeMillis()))
+            val userId = auth.currentUser?.uid ?: return Result.failure(Exception("Error"))
+            db.collection("users").document(userId)
+                .collection("recipes")
+                .add(recipe)
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -55,12 +32,35 @@ object RecipeRepo {
         }
     }
 
-    suspend fun deleteRecipe(recipeId: String): Result<Unit> {
+    suspend fun getRecipes(): List<Recipe> {
+        val userId = auth.currentUser?.uid ?: return emptyList()
+        val snapshot = db.collection("users").document(userId)
+            .collection("recipes")
+            .get()
+            .await()
+        return snapshot.documents.map { doc ->
+            val data = doc.toObject(Recipe::class.java)
+            data!!.copy(id = doc.id)
+        }
+    }
+
+    suspend fun updateRecipe(recipeId: String, updatedData: Map<String, Any>): Result<Unit> {
         return try {
-            userRecipesCollection().document(recipeId).delete().await()
+            val userId = auth.currentUser?.uid ?: return Result.failure(Exception("Error"))
+            db.collection("users").document(userId)
+                .collection("recipes")
+                .document(recipeId)
+                .update(updatedData)
+                .await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    suspend fun deleteRecipe(recipeId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        db.collection("users").document(userId)
+            .collection("recipes").document(recipeId).delete().await()
     }
 }

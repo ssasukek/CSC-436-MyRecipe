@@ -4,15 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-//import com.zybooks.myrecipe.ui.screens.AddRecipeScreen
+import com.zybooks.myrecipe.ui.screens.AddRecipeScreen
 import com.zybooks.myrecipe.ui.screens.AiPromptScreen
 import com.zybooks.myrecipe.ui.screens.LoadingScreen
 import com.zybooks.myrecipe.ui.screens.LoginScreen
 import com.zybooks.myrecipe.ui.screens.RecipeDetailScreen
 import com.zybooks.myrecipe.ui.screens.RecipeListScreen
 import com.zybooks.myrecipe.ui.screens.RegisterScreen
-
-//import com.zybooks.myrecipe.ui.screens.*
 
 @Composable
 fun NavGraph(navController: NavHostController) {
@@ -34,14 +32,20 @@ fun NavGraph(navController: NavHostController) {
         composable("recipes") {
             RecipeListScreen(navController)
         }
-        composable("recipe_detail") {
-            RecipeDetailScreen(navController)
+        composable("add_recipe") {
+            AddRecipeScreen(navController)
         }
-//        composable("add_recipe") {
-//            AddRecipeScreen(navController)
-//        }
         composable("ai_prompt") {
             AiPromptScreen(navController)
+        }
+
+        composable("edit_recipe/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")!!
+            RecipeDetailScreen(navController, id)
+        }
+        composable("recipe_detail/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id") ?: ""
+            RecipeDetailScreen(navController, id)
         }
     }
 }

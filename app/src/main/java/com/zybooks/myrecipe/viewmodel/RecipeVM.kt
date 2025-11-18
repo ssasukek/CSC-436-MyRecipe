@@ -12,67 +12,70 @@ class RecipeVM : ViewModel() {
     private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
     val recipes = _recipes.asStateFlow()
 
-    // Loading and error states
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading = _isLoading.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage = _errorMessage.asStateFlow()
-
     fun loadRecipes() {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = RecipeRepo.getRecipes()
-            _isLoading.value = false
-
-            if (result.isSuccess) {
-                _recipes.value = result.getOrNull() ?: emptyList()
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message
-            }
+            _recipes.value = RecipeRepo.getRecipes()
         }
     }
 
     fun addRecipe(title: String, ingredients: String, instructions: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val newRecipe = Recipe(title = title, ingredients = ingredients, instructions = instructions)
-            val result = RecipeRepo.addRecipe(newRecipe)
-            _isLoading.value = false
-
+            val recipe = Recipe(
+                title = title,
+                ingredients = ingredients,
+                instructions = instructions
+            )
+            val result = RecipeRepo.addRecipe(recipe)
             if (result.isSuccess) {
-                loadRecipes() // Refresh after adding
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message
+                loadRecipes()
             }
         }
     }
 
-    fun updateRecipe(recipe: Recipe) {
+    fun updateRecipe(recipeId: String, title: String, ingredients: String, instructions: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = RecipeRepo.updateRecipe(recipe)
-            _isLoading.value = false
-
+            val updatedRecipe = mapOf(
+                "title" to title,
+                "ingredients" to ingredients,
+                "instructions" to instructions,
+                "updatedAt" to System.currentTimeMillis()
+            )
+            val result = RecipeRepo.updateRecipe(recipeId, updatedRecipe)
             if (result.isSuccess) {
                 loadRecipes()
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message
             }
         }
     }
 
     fun deleteRecipe(recipeId: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = RecipeRepo.deleteRecipe(recipeId)
-            _isLoading.value = false
-
-            if (result.isSuccess) {
-                loadRecipes()
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message
-            }
+            RecipeRepo.deleteRecipe(recipeId)
+            loadRecipes()
         }
     }
+
+    fun parseAiRecipe(aiText: String): Triple<String, String, String> {
+        val lines = aiText.lines()
+
+        val title = lines.firstOrNull()?.replace("#", "")?.trim().orEmpty()
+
+        val ingredientsStart = lines.indexOfFirst { it.contains("Ingredients", ignoreCase = true) }
+        val instructionsStart = lines.indexOfFirst { it.contains("Instructions", ignoreCase = true) }
+
+        val ingredients = if (ingredientsStart != -1 && instructionsStart != -1) {
+            lines.subList(ingredientsStart + 1, instructionsStart)
+                .joinToString("\n")
+                .trim()
+        } else "No ingredients found"
+
+        val instructions = if (instructionsStart != -1) {
+            lines.subList(instructionsStart + 1, lines.size)
+                .joinToString("\n")
+                .trim()
+        } else "No instructions found"
+
+        return Triple(title, ingredients, instructions)
+    }
 }
+
+

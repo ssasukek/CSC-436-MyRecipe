@@ -41,6 +41,8 @@ import com.zybooks.myrecipe.viewmodel.RecipeVM
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import com.halilibo.richtext.markdown.Markdown
+import com.halilibo.richtext.ui.RichText
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -117,15 +119,23 @@ fun AiPromptScreen(navController: NavController, viewModel: RecipeVM = viewModel
 
             if (aiResponse.isNotBlank()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(aiResponse)
+                RichText {
+                    Markdown(aiResponse)
+                }
                 Button(
                     onClick = {
+                        val (title, ingredients, instructions) = viewModel.parseAiRecipe(aiResponse)
+
                         viewModel.addRecipe(
-                            title = aiResponse.substringBefore("\n"),
-                            ingredients = "See below",
-                            instructions = aiResponse
+                            title = title,
+                            ingredients = ingredients,
+                            instructions = instructions
                         )
-                        navController.navigate("recipes")
+                        navController.navigate("recipes"){
+                            popUpTo("ai_prompt"){
+                                inclusive = true
+                            }
+                        }
                     },
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 ) {
@@ -137,11 +147,5 @@ fun AiPromptScreen(navController: NavController, viewModel: RecipeVM = viewModel
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AiPromptScreenPreview() {
-    AiPromptScreen(navController = rememberNavController())
 }
 

@@ -9,10 +9,10 @@ data class Recipe(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val title: String,
-//    val description: String,
-//    val ingredients: String,
+    val description: String,
+    val ingredients: String,
     val instruction: String,
-//    val steps: String,
+    val createdAt: Long = System.currentTimeMillis(),
 //    val imageUri: String? = null,
 //    val isFavorite: Boolean = false
 )
