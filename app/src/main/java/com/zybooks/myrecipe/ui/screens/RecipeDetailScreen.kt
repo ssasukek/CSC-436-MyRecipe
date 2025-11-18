@@ -1,5 +1,6 @@
 package com.zybooks.myrecipe.ui.screens
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,16 +60,13 @@ fun RecipeDetailScreen(
     }
 
     val recipeList by viewModel.recipes.collectAsState()
-
-    println("Debug: Requested recipeId = $recipeId")
-    println("Debug: Loaded ids = ${recipeList.map { it.id }}")
-
     val recipe = recipeList.find { it.id == recipeId }
-
     if (recipe == null) {
         Text("Recipe not found")
         return
     }
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -82,7 +81,18 @@ fun RecipeDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Handle share action */ }) {
+                    IconButton(onClick = {
+                        val sendIntent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                recipe.title
+                            )
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    }) {
                         Icon(
                             imageVector = Icons.Filled.Share,
                             contentDescription = "Share"
