@@ -131,19 +131,41 @@ fun RecipeDetailScreen(
                 .padding(innerPadding)
                 .padding(16.dp),
         ){
-            item {
-                Text(
-                    recipe.title,
-                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
-                )
-                Spacer(Modifier.height(16.dp))
-            }
+        item {
+            Text(
+                recipe.title,
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(Modifier.height(16.dp))
+        }
 
-            item {
-                RichText {
-                    Markdown(recipe.markdown)
+        item {
+            var servings by remember { mutableIntStateOf(4) }
+            val scaleFactor = servings / 4f
+
+            val (markDownIngr, markDownInstr) = splitMarkDownSection(recipe.markdown)
+
+            val scaledIngredients = scaleIngredients(markDownIngr, scaleFactor)
+
+            val fullMarkdown = scaledIngredients + "\n\n" + markDownInstr
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Servings:", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = { if (servings > 1) servings-- }) {
+                    Text("-", style = MaterialTheme.typography.headlineLarge)
+                }
+                Text("$servings", style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = { servings++ }) {
+                    Text("+", style = MaterialTheme.typography.headlineLarge)
                 }
             }
+
+            Spacer(Modifier.height(12.dp))
+
+            RichText {
+                Markdown(fullMarkdown)
+            }
+        }
 
         item {
             Button(
@@ -159,115 +181,41 @@ fun RecipeDetailScreen(
 }
 }
 
-//@Composable
-//fun IngredientsCard(ingredientsText: String) {
-//    var servings by remember { mutableIntStateOf(4) }
-//    val scale = servings / 4f
-//
-//    val lines = ingredientsText
-//        .lines()
-//        .filter { it.isNotBlank() }
-//
-//    fun scaleNum(line: String): String {
-//        val regex = Regex("""(\d+(\.\d+)?)""")
-//        return line.replace(regex) { match ->
-//            val num = match.value.toFloatOrNull() ?: return@replace match.value
-//            val scaled = num * scale
-//            if (scaled % 1 == 0f) scaled.toInt().toString() else "%.1f".format(scaled)
-//        }
-//    }
-//
-//    Card(
-//        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant),
-//    ) {
-//        Column(Modifier.padding(18.dp)) {
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                Text("Servings:", style = MaterialTheme.typography.titleMedium)
-//
-//                IconButton(onClick = { if (servings > 1) servings-- }) {
-//                    Text("-", style = MaterialTheme.typography.headlineMedium)
-//                }
-//                Text("$servings", style = MaterialTheme.typography.titleLarge)
-//                IconButton(onClick = { servings++ }) {
-//                    Text("+", style = MaterialTheme.typography.headlineSmall)
-//                }
-//            }
-//            Spacer(Modifier.height(5.dp))
-//
-//            lines.forEach { raw ->
-//                val line = raw.trim()
-//
-//                when {
-//                    //Header
-//                    line.startsWith("###") -> {
-//                        Text(
-//                            text = line.removePrefix("###").removeSuffix(":").trim(),
-//                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-//                        )
-//                        Spacer(Modifier.height(8.dp))
-//                    }
-//
-//                    //Bullet
-//                    line.startsWith("* ") -> {
-//                        Text("• " + scaleNum(line.removePrefix("* ")), style = MaterialTheme.typography.bodyLarge)
-//                        Spacer(Modifier.height(6.dp))
-//                    }
-//
-//                    else -> {
-//                        Text(line, style = MaterialTheme.typography.bodyLarge)
-//                        Spacer(Modifier.height(6.dp))
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//@Composable
-//fun InstructionsCard(instructionsText: String) {
-//
-//    val lines = instructionsText
-//        .lines()
-//        .filter { it.isNotBlank() }
-//
-//    Card(colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surfaceVariant)) {
-//        Column(Modifier.padding(16.dp)) {
-//
-//            lines.forEach { line ->
-//                val trimmed = line.trim()
-//
-//                when {
-//                    trimmed.startsWith("###") -> {
-//                        Text(
-//                            trimmed.removePrefix("###").removeSuffix(":").trim(),
-//                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-//                        )
-//                        Spacer(Modifier.height(8.dp))
-//                    }
-//
-//                    trimmed.matches(Regex("""^\d+\..*""")) -> {
-//                        Text(trimmed, style = MaterialTheme.typography.bodyLarge)
-//                        Spacer(Modifier.height(8.dp))
-//                    }
-//
-//                    trimmed.startsWith("* ") -> {
-//                        Text("• " + trimmed.removePrefix("* "), style = MaterialTheme.typography.bodyLarge)
-//                        Spacer(Modifier.height(6.dp))
-//                    }
-//
-//                    trimmed.startsWith("** ") -> {
-//                        Text(trimmed.removePrefix("** "), style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold))
-//                        Spacer(Modifier.height(6.dp))
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
 @Preview(showBackground = true)
 @Composable
 fun RecipeDetailScreenPreview() {
     val navController = rememberNavController()
     RecipeDetailScreen(navController = navController, recipeId = "previewRecipeId")
+}
+
+
+fun splitMarkDownSection(markdown: String): Pair<String, String>{
+    val lines = markdown.lines()
+    val ingredientsIndex = lines.indexOfFirst { it.contains("ingredients", ignoreCase = true) }
+    val instructionsIndex = lines.indexOfFirst { it.contains("instructions", ignoreCase = true) }
+
+    if (ingredientsIndex == -1 || instructionsIndex == -1){
+        return Pair(markdown, "")
+    }
+
+    val ingredients = lines.subList(ingredientsIndex, instructionsIndex).joinToString("\n")
+    val instructions = lines.subList(instructionsIndex, lines.size).joinToString("\n")
+
+    return Pair(ingredients, instructions)
+
+}
+
+fun scaleIngredients(text: String, scale: Float): String {
+    val numRegex = Regex("""(\d+(\.\d+)?)""")
+    return text.lines().joinToString("\n"){ line ->
+        numRegex.replace(line) { matchResult ->
+            val number = matchResult.value.toFloatOrNull() ?: return@replace matchResult.value
+            val scaled = number * scale
+            if (scaled % 1 == 0f) {
+                scaled.toInt().toString()
+            } else {
+                "%.1f".format(scaled)
+            }
+        }
+    }
 }
