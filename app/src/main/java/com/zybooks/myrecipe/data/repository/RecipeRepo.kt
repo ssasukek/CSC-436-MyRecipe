@@ -8,11 +8,10 @@ import kotlinx.coroutines.tasks.await
 data class Recipe(
     val id: String = "",
     val title: String = "",
-    val ingredients: String = "",
-    val instructions: String = "",
     val favorite: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
+    val updatedAt: Long = System.currentTimeMillis(),
+    val markdown: String = ""
 )
 
 object RecipeRepo {
@@ -37,7 +36,7 @@ object RecipeRepo {
     suspend fun getRecipes(): List<Recipe> {
         val snapshot = userRecipesCollection().get().await()
         return snapshot.documents.mapNotNull { doc ->
-            doc.toObject(Recipe::class.java)?.copy(id = doc.id)
+            doc.toObject(Recipe::class.java)?.copy(id = doc.id,)
         }
     }
 

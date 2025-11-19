@@ -76,11 +76,11 @@ fun AddRecipeScreen(
                             val extractedIngredients = extractIngredientsFromUrl(recipeUrl)
                             val extractedInstructions = extractInstructionsFromUrl(recipeUrl)
 
-                            viewModel.addRecipe(
-                                title = extractedTitle,
-                                ingredients = extractedIngredients,
-                                instructions = extractedInstructions
-                            )
+//                            viewModel.addRecipe(
+//                                title = extractedTitle,
+//                                ingredients = extractedIngredients,
+//                                instructions = extractedInstructions
+//                            )
 
                             isLoading = false
                             showSuccess = true

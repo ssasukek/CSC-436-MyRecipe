@@ -28,12 +28,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.ai.ai
 import com.google.firebase.ai.type.GenerativeBackend
@@ -124,12 +122,18 @@ fun AiPromptScreen(navController: NavController, viewModel: RecipeVM = viewModel
                 }
                 Button(
                     onClick = {
-                        val (title, ingredients, instructions) = viewModel.parseAiRecipe(aiResponse)
+//                        val (title, ingredients, instructions) = viewModel.parseAiRecipe(aiResponse)
+                        val title = aiResponse
+                            .lines()
+                            .firstOrNull { it.startsWith("#") }
+                            ?.replace("#", "")
+                            ?.trim()
 
                         viewModel.addRecipe(
-                            title = title,
-                            ingredients = ingredients,
-                            instructions = instructions
+                            title = title ?: "Untitled",
+                            markdown = aiResponse,
+//                            ingredients = aiResponse,
+//                            instructions = aiResponse
                         )
                         navController.navigate("recipes"){
                             popUpTo("ai_prompt"){
