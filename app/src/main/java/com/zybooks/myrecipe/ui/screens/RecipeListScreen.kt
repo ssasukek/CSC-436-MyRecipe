@@ -68,7 +68,7 @@ fun RecipeListScreen(navController: NavController, viewModel: RecipeVM = viewMod
                     }
                 },
                 actions = {
-                    IconButton(onClick = { navController.navigate("ai_prompt") }) {
+                    IconButton(onClick = { navController.navigate("add_recipe") }) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "AI Recipe"
@@ -88,7 +88,7 @@ fun RecipeListScreen(navController: NavController, viewModel: RecipeVM = viewMod
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("add_recipe") },
+                onClick = { navController.navigate("ai_prompt") },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Icon(

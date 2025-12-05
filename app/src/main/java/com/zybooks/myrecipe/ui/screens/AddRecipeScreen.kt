@@ -16,6 +16,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.zybooks.myrecipe.viewmodel.RecipeVM
 import kotlinx.coroutines.launch
+import com.zybooks.myrecipe.data.model.RecipeExtractor
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +28,7 @@ fun AddRecipeScreen(
     var recipeUrl by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var showSuccess by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
 
@@ -70,29 +73,41 @@ fun AddRecipeScreen(
                         scope.launch {
                             isLoading = true
                             showSuccess = false
+                            errorMessage = null
 
-                            // Temporary logic until AI or backend scraper
-                            val extractedTitle = extractTitleFromUrl(recipeUrl)
-                            val extractedIngredients = extractIngredientsFromUrl(recipeUrl)
-                            val extractedInstructions = extractInstructionsFromUrl(recipeUrl)
+                            try {
+                                val (title, ingredients, instructions) =
+                                    RecipeExtractor.extractRecipe(recipeUrl)
 
-//                            viewModel.addRecipe(
-//                                title = extractedTitle,
-//                                ingredients = extractedIngredients,
-//                                instructions = extractedInstructions
-//                            )
+                                viewModel.addRecipe(
+                                    title = title,
+                                    markdown = """
+                                        # $title
+                                        
+                                        ## Ingredients
+                                        $ingredients
+                                        
+                                        ## Instructions
+                                        $instructions
+                                    
+                                    """.trimIndent()
+                                )
+                                showSuccess = true
 
-                            isLoading = false
-                            showSuccess = true
-
-                            // Go back to recipe list
-                            navController.navigate("recipes") {
-                                popUpTo("add_recipe") { inclusive = true }
+                                navController.navigate("recipes") {
+                                    popUpTo("add_recipe") { inclusive = true }
+                                }
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                                errorMessage = e.message ?: "Failed to add recipe"
+                            } finally {
+                                isLoading = false
                             }
                         }
                     }
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                enabled = recipeUrl.isNotBlank() && !isLoading
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Recipe")
                 Spacer(Modifier.width(8.dp))
@@ -116,17 +131,4 @@ fun AddRecipeScreen(
 @Composable
 fun AddRecipeScreenPreview() {
     AddRecipeScreen(navController = rememberNavController())
-}
-
-private fun extractTitleFromUrl(url: String): String {
-    val domain = url.substringAfter("://").substringBefore("/")
-    return "Recipe from $domain"
-}
-
-private fun extractIngredientsFromUrl(url: String): String {
-    return "Ingredients parsed from: $url"
-}
-
-private fun extractInstructionsFromUrl(url: String): String {
-    return "Instructions parsed and simplified from: $url"
 }
