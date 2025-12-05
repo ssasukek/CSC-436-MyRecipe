@@ -9,3 +9,6 @@ class MyRecipeApp : Application() {
         FirebaseApp.initializeApp(this)
     }
 }
+
+// dataBase
+// https://console.firebase.google.com/u/0/
