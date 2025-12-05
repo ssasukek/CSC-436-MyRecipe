@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
+import com.google.firebase.ai.type.GenerativeBackend
 import com.zybooks.myrecipe.viewmodel.RecipeVM
 import kotlinx.coroutines.launch
 import com.zybooks.myrecipe.data.model.RecipeExtractor
@@ -31,6 +34,10 @@ fun AddRecipeScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
+
+    // Start by instantiating a GenerativeModel and specifying the model name:
+    val model = Firebase.ai(backend = GenerativeBackend.googleAI())
+        .generativeModel("gemini-2.5-flash")
 
     Scaffold(
         topBar = {
@@ -72,42 +79,58 @@ fun AddRecipeScreen(
                     if (recipeUrl.isNotBlank()) {
                         scope.launch {
                             isLoading = true
-                            showSuccess = false
                             errorMessage = null
-
                             try {
-                                val (title, ingredients, instructions) =
-                                    RecipeExtractor.extractRecipe(recipeUrl)
+                                val html = RecipeExtractor.fetchHtml(recipeUrl)
+                                val text = RecipeExtractor.htmlToText(html)
+
+                                val prompt = """
+                                    You are a recipe extractor. 
+                                    
+                                    From the text below, extract ONE recipe only.
+                                    Ignore everything unrelated.
+                                    
+                                    ONly return the result as markdown in this structure:
+                                    
+                                    # Recipe Title
+                                    ## Ingredients
+                                    - item 1
+                                    - item 2
+                                    ## Instructions
+                                    1. step 1
+                                    2. step 2
+                                    Here is the page text:
+                                    $text
+                                """.trimIndent()
+
+                                val result = model.generateContent(prompt)
+                                val markdown = result.text ?: throw Exception("No response from Gemini")
+
+                                val title = markdown
+                                    .lineSequence()
+                                    .firstOrNull { it.startsWith("#") }
+                                    ?.removePrefix("#")
+                                    ?.trim()
+                                    .takeUnless { it.isNullOrEmpty() }
+                                    ?: "Untitled"
 
                                 viewModel.addRecipe(
                                     title = title,
-                                    markdown = """
-                                        # $title
-                                        
-                                        ## Ingredients
-                                        $ingredients
-                                        
-                                        ## Instructions
-                                        $instructions
-                                    
-                                    """.trimIndent()
+                                    markdown = markdown
                                 )
-                                showSuccess = true
 
                                 navController.navigate("recipes") {
                                     popUpTo("add_recipe") { inclusive = true }
                                 }
                             } catch (e: Exception) {
-                                e.printStackTrace()
-                                errorMessage = e.message ?: "Failed to add recipe"
+                                errorMessage = e.message ?: "Something went wrong"
                             } finally {
                                 isLoading = false
                             }
                         }
                     }
                 },
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                enabled = recipeUrl.isNotBlank() && !isLoading
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Add Recipe")
                 Spacer(Modifier.width(8.dp))
@@ -119,9 +142,9 @@ fun AddRecipeScreen(
                 CircularProgressIndicator()
             }
 
-            if (showSuccess) {
+            errorMessage?.let {
                 Spacer(Modifier.height(8.dp))
-                Text("Recipe added successfully!", color = MaterialTheme.colorScheme.primary)
+                Text(it, color = MaterialTheme.colorScheme.error)
             }
         }
     }
